@@ -23,36 +23,55 @@
         <button id="redirectButton" class="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-700 transition-colors duration-300 transform active:scale-95">
             Continue to App
         </button>
+        <div id="debugInfo" class="mt-4 text-left text-sm text-gray-500 break-all">
+            <p><strong>URL Params:</strong></p>
+            <p id="urlParamsDisplay">Loading...</p>
+            <p class="mt-2"><strong>Constructed URI:</strong></p>
+            <p id="constructedUriDisplay">Loading...</p>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const redirectButton = document.getElementById('redirectButton');
-            
+            const urlParamsDisplay = document.getElementById('urlParamsDisplay');
+            const constructedUriDisplay = document.getElementById('constructedUriDisplay');
+
             // Get the full URL of the redirect from Keycloak, including the code and state
             const urlParams = new URLSearchParams(window.location.search);
             const authCode = urlParams.get('code');
             const state = urlParams.get('state');
 
-            // Construct the final deep link URL for your mobile app
-            // Use your app's deep link scheme
-            let deepLink = 'com.emdsys.android.mobilerad://oauth2redirect';
-
-            // Add the code and state back to the URL as query parameters
-            if (authCode) {
-                deepLink += `?code=${authCode}`;
-                if (state) {
-                    deepLink += `&state=${state}`;
-                }
-            } else if (state) {
-                 deepLink += `?state=${state}`;
-            }
-
-            console.log("Constructed deep link:", deepLink);
+            // Display the received parameters on the page
+            urlParamsDisplay.textContent = `code: ${authCode}, state: ${state}`;
 
             redirectButton.addEventListener('click', () => {
-                // Redirect the browser to the deep link URI
-                window.location.href = deepLink;
+                // Construct a robust intent URI to launch the Android app
+                let intentUri = 'intent://oauth2redirect';
+                intentUri += '#Intent;';
+                intentUri += 'scheme=com.emdsys.android.mobilerad;';
+                intentUri += 'package=com.emdsys.android.mobilerad;';
+
+                // Add the code and state as extras to the intent
+                if (authCode) {
+                    intentUri += `S.code=${authCode};`;
+                }
+                if (state) {
+                    intentUri += `S.state=${state};`;
+                }
+                
+                intentUri += 'end';
+
+                // Display the constructed URI on the page for debugging
+                constructedUriDisplay.textContent = intentUri;
+                
+                // Redirect the browser to the intent URI
+                try {
+                    window.location.href = intentUri;
+                } catch (e) {
+                    console.error("Failed to redirect to intent URI:", e);
+                    alert("Failed to redirect to the app. Check the console for errors.");
+                }
             });
         });
     </script>
