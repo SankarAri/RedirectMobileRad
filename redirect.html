@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-xl max-w-sm text-center mx-4">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">You are logged in!</h1>
+        <p class="text-gray-600 mb-6">
+            Please click the button below to return to the mobile application.
+        </p>
+        <button id="redirectButton" class="w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-700 transition-colors duration-300 transform active:scale-95">
+            Continue to App
+        </button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const redirectButton = document.getElementById('redirectButton');
+            
+            // Get the full URL of the redirect from Keycloak, including the code and state
+            const urlParams = new URLSearchParams(window.location.search);
+            const authCode = urlParams.get('code');
+            const state = urlParams.get('state');
+
+            // Construct the final deep link URL for your mobile app
+            // Use your app's deep link scheme
+            let deepLink = 'com.emdsys.android.mobilerad://oauth2redirect';
+
+            // Add the code and state back to the URL as query parameters
+            if (authCode) {
+                deepLink += `?code=${authCode}`;
+                if (state) {
+                    deepLink += `&state=${state}`;
+                }
+            } else if (state) {
+                 deepLink += `?state=${state}`;
+            }
+
+            console.log("Constructed deep link:", deepLink);
+
+            redirectButton.addEventListener('click', () => {
+                // Redirect the browser to the deep link URI
+                window.location.href = deepLink;
+            });
+        });
+    </script>
+</body>
+</html>
