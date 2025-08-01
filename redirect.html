@@ -36,13 +36,14 @@
             const redirectButton = document.getElementById('redirectButton');
             const urlParamsDisplay = document.getElementById('urlParamsDisplay');
             const constructedUriDisplay = document.getElementById('constructedUriDisplay');
-
-            // Get the full URL of the redirect from Keycloak, including the code and state
+            
             const urlParams = new URLSearchParams(window.location.search);
             const authCode = urlParams.get('code');
             const state = urlParams.get('state');
 
-            // Display the received parameters on the page
+            // Construct the final deep link URI for your mobile app
+            const appDeepLinkUri = 'com.emdsys.android.mobilerad://oauth2redirect';
+            
             urlParamsDisplay.textContent = `code: ${authCode}, state: ${state}`;
 
             redirectButton.addEventListener('click', () => {
@@ -51,7 +52,7 @@
                 intentUri += '#Intent;';
                 intentUri += 'scheme=com.emdsys.android.mobilerad;';
                 intentUri += 'package=com.emdsys.android.mobilerad;';
-
+                
                 // Add the code and state as extras to the intent
                 if (authCode) {
                     intentUri += `S.code=${authCode};`;
@@ -59,14 +60,18 @@
                 if (state) {
                     intentUri += `S.state=${state};`;
                 }
+
+                // Add a fallback URL. This is crucial. If the intent fails,
+                // the browser will try to redirect to this URL instead.
+                // We'll use the deep link itself as the fallback.
+                intentUri += `S.browser_fallback_url=${encodeURIComponent(appDeepLinkUri)};`;
                 
                 intentUri += 'end';
 
-                // Display the constructed URI on the page for debugging
                 constructedUriDisplay.textContent = intentUri;
-                
-                // Redirect the browser to the intent URI
+
                 try {
+                    // Redirect the browser to the intent URI
                     window.location.href = intentUri;
                 } catch (e) {
                     console.error("Failed to redirect to intent URI:", e);
